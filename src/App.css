@@ -104,6 +104,20 @@ body {
 .lt-empty { padding: 60px 10px; text-align: center; color: var(--ink-soft); }
 .lt-empty .big { font-family: var(--serif); font-size: 20px; color: var(--ink); margin-bottom: 6px; }
 
+.lt-pagination {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 24px; flex-wrap: wrap;
+}
+.lt-page-btn {
+  min-width: 34px; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid var(--line);
+  color: var(--brass-dark); font-family: var(--sans); font-size: 13px; cursor: pointer;
+}
+.lt-page-btn:hover:not(:disabled) { background: var(--paper-2); }
+.lt-page-btn.active { background: var(--brass-dark); color: var(--paper); border-color: var(--ink); }
+.lt-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+.lt-page-ellipsis { color: var(--ink-soft); padding: 0 4px; font-size: 13px; }
+
 .lt-overlay {
   position: fixed; inset: 0; background: rgba(20,20,15,.45);
   display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50;
@@ -133,5 +147,5 @@ body {
 
 @media (max-width: 640px) {
   .lt-row { grid-template-columns: 1fr 90px; }
-  .lt-contact, .lt-source { display: none; }
+  .lt-contact { display: none; }
 }

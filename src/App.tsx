@@ -4,8 +4,11 @@ import { type Lead, type LeadStatus, STATUSES, STATUS_LABEL } from "./types";
 import LeadList from "./components/Leadlist";
 import AddLeadModal from "./components/Addleadmodal";
 import toast, { Toaster } from "react-hot-toast";
+import Pagination from "./components/Pagination";
 
 const API_BASE = "https://lead-tracker-ctvb.onrender.com";
+
+const PAGE_SIZE = 5;
 
 export default function App() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -14,6 +17,21 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
+
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 400);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [query]);
 
   useEffect(() => {
     let cancelled = false;
@@ -21,17 +39,14 @@ export default function App() {
     setLoading(true);
     setError(null);
 
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({
+      limit: String(PAGE_SIZE),
+      offset: String((page - 1) * PAGE_SIZE),
+    });
 
-    const search = query.trim();
-
-    if (search) {
-      params.set("search", search);
-    }
-
-    if (filter !== "all") {
-      params.set("status", filter);
-    }
+    const search = debouncedQuery.trim();
+    if (search) params.set("search", search);
+    if (filter !== "all") params.set("status", filter);
 
     const queryString = params.toString();
 
@@ -46,11 +61,12 @@ export default function App() {
       .then((json: { count: number; data: Lead[] }) => {
         if (!cancelled) {
           setLeads(json.data ?? []);
+          setTotalCount(json.count ?? 0);
         }
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err.message || "Couldn't load leads");
+          setError(err instanceof Error ? err.message : "Couldn't load leads");
         }
       })
       .finally(() => {
@@ -62,7 +78,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [query, filter]);
+  }, [debouncedQuery, filter, page]);
 
 
   function updateStatus(id: Lead["id"], status: LeadStatus) {
@@ -129,7 +145,7 @@ export default function App() {
             <input
               placeholder="Search by name, company or email…"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {setQuery(e.target.value); setPage(1);}}
             />
           </div>
           <button className="lt-add-btn" onClick={() => setShowAdd(true)}>
@@ -142,7 +158,7 @@ export default function App() {
             <button
               key={s}
               className={`lt-chip${filter === s ? " active" : ""}`}
-              onClick={() => setFilter(s as LeadStatus | "all")}
+              onClick={() => {setFilter(s as LeadStatus | "all"); setPage(1);}}
             >
               {s === "all" ? "All" : STATUS_LABEL[s as LeadStatus]}
             </button>
@@ -159,7 +175,10 @@ export default function App() {
         )}
 
         {!loading && !error && (
-          <LeadList leads={leads} onStatusChange={updateStatus} />
+          <>
+            <LeadList leads={leads} onStatusChange={updateStatus} />
+            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          </>
         )}
 
         {showAdd && <AddLeadModal onClose={() => setShowAdd(false)} onAdd={addLead} />}
