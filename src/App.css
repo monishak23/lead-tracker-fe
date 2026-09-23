@@ -75,7 +75,6 @@ body {
 .lt-name { font-weight: 600; font-size: 15px; }
 .lt-company { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
 .lt-contact { font-size: 13px; color: var(--ink-soft); }
-.lt-source { font-size: 12px; color: var(--ink-soft); text-transform: capitalize; }
 
 .lt-pill-wrap { position: relative; }
 .lt-pill {
