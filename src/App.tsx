@@ -82,7 +82,7 @@ export default function App() {
       .then((json: Lead) => {
         setLeads((ls) => ls.map((l) => (l.id === id ? json : l)));
       })
-      .catch((err) => {
+      .catch(() => {
         toast.error("Failed to update lead");
       });
   }
@@ -104,7 +104,7 @@ export default function App() {
       .then((json: Lead) => {
         setLeads((ls) => ls.map((l) => (l.id === lead.id ? json : l)));
       })
-      .catch((err) => {
+      .catch(() => {
         toast.error("Failed to save lead");
       });       
   }
