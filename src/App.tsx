@@ -5,7 +5,7 @@ import LeadList from "./components/Leadlist";
 import AddLeadModal from "./components/Addleadmodal";
 import toast, { Toaster } from "react-hot-toast";
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = "https://lead-tracker-ctvb.onrender.com";
 
 export default function App() {
   const [leads, setLeads] = useState<Lead[]>([]);
