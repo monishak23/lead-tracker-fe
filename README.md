@@ -1,75 +1,71 @@
-# React + TypeScript + Vite
+# Lead Tracker — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Live app:** https://lead-tracker-gksglor15-monisha22.vercel.app/
 
-Currently, two official plugins are available:
+## Architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Framework:** React + TypeScript, built with Vite
+- **Routing:** `react-router-dom`
+- **State management:** local component state only (`useState`/`useEffect`) — no
+  external state library, since the app's data needs are simple enough not to justify one
+- **Data fetching:** native `fetch`, no data-fetching library (React Query, SWR, etc.) —
+  a deliberate trade-off, see below
+- **Styling:** plain CSS with design tokens (CSS custom properties) for color/spacing/type,
+  no CSS framework
 
-## React Compiler
+### Key patterns
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Debounced search:** the search input updates local `query` state on every keystroke,
+  but a separate `debouncedQuery` state (updated via a 400ms `setTimeout` effect) is what
+  actually triggers a fetch — so typing doesn't fire a request per keystroke.
+- **Pagination:** `page` state drives `limit`/`offset` query params sent to the backend;
+  changing the search term or status filter resets `page` back to 1 automatically.
 
-## Expanding the ESLint configuration
+## Setup Instructions (local)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+git clone https://github.com/monishak23/lead-tracker-fe
+cd lead-tracker-fe
+npm install
+cp .env.example .env   # set VITE_API_BASE_URL, e.g. http://localhost:5000/api
+npm run dev              # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Requires the backend running (locally or pointed at the deployed API) for data to load.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Environment variables
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Variable | Description |
+|---|---|
+| `VITE_API_BASE_URL` | Base URL of the backend API, e.g. `https://lead-tracker-ctvb.onrender.com/api` |
 
-```
+## Deployment Steps
+
+1. Pushed this repo to GitHub.
+2. On Vercel: New Project → imported this repo → Framework Preset: Vite (auto-detected).
+3. Set `VITE_API_BASE_URL` in Vercel's Environment Variables to the live Render backend
+   URL + `/api`.
+4. Deployed. Vercel auto-redeploys on every push to the connected branch.
+5. Confirmed the backend's `CLIENT_ORIGIN` env var was updated to this Vercel URL so CORS
+   allows requests from production.
+
+## Trade-offs
+
+- **No data-fetching library (React Query/SWR):** at this app's scale (one main list
+  view), hand-rolled `useEffect` + `fetch` + a `cancelled` guard covers the real failure
+  mode (race conditions) without adding a dependency; would switch to React Query if the
+  app grew more views that share/cache the same data.
+- **No global state management (Redux/Zustand/Context):** all state is local to the
+  components that use it; there's no cross-cutting state yet that would justify the
+  added complexity.
+- **Manual debounce implementation over a library (`use-debounce`, lodash):** the debounce
+  logic is ~6 lines; not worth a dependency for something this small.
+- **Plain CSS over Tailwind/a component library:** kept full control over the specific
+  look (custom color tokens) without pulling in a framework's default aesthetic.
+
+## Future Improvements
+
+- Loading skeletons instead of a plain "Loading…" text state
+- Optimistic UI updates for status changes (update instantly, roll back on failure)
+- Extract the inline fetch logic in `App.tsx` into a dedicated `api/` module
+- Automated component tests
